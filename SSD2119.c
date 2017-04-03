@@ -41,6 +41,7 @@
 #include "../inc/tm4c123gh6pm.h"
 #include "SSD2119.h"
 #include <stdint.h>
+#include <stdio.h>
 
   
 // 4 bit Color 	 red,green,blue to 16 bit color 
@@ -467,8 +468,8 @@ void LCD_SetTextColor(unsigned char r, unsigned char g, unsigned char b){
     textColor = convertColor(r, g, b);
 }
 
-// ************** printf **********************************
-// - Basic printf() implementation
+// ************** print **********************************
+// - Basic print() implementation
 // - Adapted from Craig Chase, EE312 printf() case study
 // - Supports:
 //   - %d   Signed decimal integer
@@ -479,7 +480,7 @@ void LCD_SetTextColor(unsigned char r, unsigned char g, unsigned char b){
 //   - %b   Binary integer
 //   - %%   A single % output
 // ********************************************************
-void printf(char fmt[], ...) {
+void print(char fmt[], ...) {
 	unsigned char k = 0;
 	void* next_arg = &fmt + 1;
 	while (fmt[k] != 0) {
@@ -649,16 +650,16 @@ void LCD_PrintFloat(float num){
     long temp;
     
     // Decode exponent
-    printf ("binary = %b\n", num);
-    printf ("hex    = %x\n", num);
+    print ("binary = %b\n", num);
+    print ("hex    = %x\n", num);
     
     temp = ((long)num);
-    printf ("exponent = %d\n", temp);
+    print ("exponent = %d\n", temp);
     
     
     LCD_PrintChar('\n');
    // temp = (long)(num*(1<<12));
-   // printf("%d.%d", temp>>12,  (temp&0xFFF)*1000/(1<<12));
+   // print("%d.%d", temp>>12,  (temp&0xFFF)*1000/(1<<12));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -889,78 +890,52 @@ void LCD_DrawImage(const unsigned char imgPtr[], unsigned short x, unsigned shor
 //   - pointer to image data
 //   - x, y location to draw image
 // ********************************************************
-void LCD_DrawBMP(const unsigned char* imgPtr, unsigned short x, unsigned short y){
-    short i, j, bpp;
-    long width, height, dataOffset;
-    const unsigned char* pixelOffset;
-    
-    // read BMP metadata
-    width = *(imgPtr + BMP_WIDTH_OFFSET);
-    height = *(imgPtr + BMP_HEIGHT_OFFSET);
-    bpp = *(imgPtr + BMP_BPP_OFFSET);
-    dataOffset = *(imgPtr + BMP_DATA_OFFSET);
 
-    // TODO : check compression type (do nothing if compresses)
-    
-    // debug info
-//    printf("height: %d, width: %d, bpp %d", height, width, bpp);
-    
-    // setup pixel pointer
-    pixelOffset = imgPtr + dataOffset;
-
-    for (i = 0; i < height; i++) {
-        // Set the X address of the display cursor.
-        LCD_WriteCommand(SSD2119_X_RAM_ADDR_REG);
-        LCD_WriteData(x);        
-
-        // Set the Y address of the display cursor.
-        LCD_WriteCommand(SSD2119_Y_RAM_ADDR_REG);
-        LCD_WriteData(y + height - i);
-
-        LCD_WriteCommand(SSD2119_RAM_DATA_REG);
-
-        switch(bpp){
-            case 1:
-            {   // unknown if working yet
-                for (j = 0; j < width/8; j++) {
-                    unsigned char pixelData = *(pixelOffset);
-                    LCD_WriteData((pixelData&0x80)*0xFFFF);            
-                    LCD_WriteData((pixelData&0x40)*0xFFFF);            
-                    LCD_WriteData((pixelData&0x20)*0xFFFF);            
-                    LCD_WriteData((pixelData&0x10)*0xFFFF);            
-                    LCD_WriteData((pixelData&0x08)*0xFFFF);            
-                    LCD_WriteData((pixelData&0x04)*0xFFFF);            
-                    LCD_WriteData((pixelData&0x02)*0xFFFF);            
-                    LCD_WriteData((pixelData&0x01)*0xFFFF);            
-                    pixelOffset++;
-                }break;
-            }
-            case 4:
-            {   // working?
-                for (j = 0; j < width/2; j++) {
-                    unsigned char pixelData = *(pixelOffset); 
-//                    LCD_WriteData( CONVERT4BPP((pixelData&0xF0)>>4) );            
-//                    LCD_WriteData( CONVERT4BPP(pixelData&0x0F) );
-                    LCD_WriteData( Color4[(pixelData&0xF0)>>4] );            
-                    LCD_WriteData( Color4[pixelData&0x0F] );
-                    pixelOffset++;
-                } break;
-            }
-            case 24:
-            {   // seems to work
-                for (j = 0; j < width; j++) {
-                    // read 24bit RGB value into pixelData
-                    unsigned long pixelData = *(pixelOffset) | *(pixelOffset + 1) << 8 | *(pixelOffset + 2) << 16;
-                    
-                    // write RGB value to screen (passed through conversion macro)
-                    LCD_WriteData( CONVERT24BPP(pixelData) );
-                    
-                    // increment pixel data pointer to next 24bit value
-                    pixelOffset += 3;
-                }                
-            }
-        }
+//const unsigned char* imgPtr, unsigned short x, unsigned short y
+void LCD_DrawBMP(int16_t x, int16_t y, const uint16_t *image, int16_t w, int16_t h){
+	/*int16_t skipC = 0;                      // non-zero if columns need to be skipped due to clipping
+  int16_t originalWidth = w;              // save this value; even if not all columns fit on the screen, the image is still this width in ROM
+  int i = w*(h - 1);
+	
+  if((x >= LCD_WIDTH) || ((y - h + 1) >= LCD_HEIGHT) || ((x + w) <= 0) || (y < 0)){
+    return;                             // image is totally off the screen, do nothing
+  }
+  if((w > LCD_WIDTH) || (h > LCD_HEIGHT)){    // image is too wide for the screen, do nothing
+    //This isn't necessarily a fatal error, but it makes the
+    //following logic much more complicated, since you can have
+    //an image that exceeds multiple boundaries and needs to be
+    //clipped on more than one side.
+    return;
+  }
+  if((x + w - 1) >= LCD_WIDTH){            // image exceeds right of screen
+    skipC = (x + w) - LCD_WIDTH;           // skip cut off columns
+    w = LCD_WIDTH - x;
+  }
+  if((y - h + 1) < 0){                  // image exceeds top of screen
+    i = i - (h - y - 1)*originalWidth;  // skip the last cut off rows
+    h = y + 1;
+  }
+  if(x < 0){                            // image exceeds left of screen
+    w = w + x;
+    skipC = -1*x;                       // skip cut off columns
+    i = i - x;                          // skip the first cut off columns
+    x = 0;
+  }
+  if(y >= LCD_HEIGHT){                     // image exceeds bottom of screen
+    h = h - (y - LCD_HEIGHT + 1);
+    y = LCD_HEIGHT - 1;
+  }
+	*/
+	int i = 0;
+  for(int16_t ymov = y; ymov<h+y; ymov=ymov+1){
+		int sombull = 0;
+    for(int16_t xmov = x; xmov<w+x; xmov=xmov+1){
+			LCD_DrawPixel(xmov, ymov, image[i]);
+      i = i + 1;                        // go to the next pixel
     }
+    //i = i + skipC;
+    //i = i - 2*originalWidth;
+  }
 }
 
 #define TOUCH_YN       (*((volatile unsigned long *)0x40004010))     // PA2

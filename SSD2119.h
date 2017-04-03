@@ -3,6 +3,8 @@
 
 #ifndef SSD2119_H
 #define SSD2119_H
+#include <stdio.h>
+#include <stdint.h>
 
 // ************** LCD_GPIOInit ****************************
 // - Initializes Port B to be used as the data bus and
@@ -86,7 +88,7 @@ void LCD_SetTextColor(unsigned char r, unsigned char g, unsigned char b);
 //   - %b   Binary integer
 //   - %%   A single % output
 // ********************************************************
-void printf(char fmt[], ...);
+void print(char fmt[], ...);
 
 // ************** LCD_PrintInteger ************************
 // - Prints a signed integer to the screen
@@ -173,7 +175,7 @@ void LCD_DrawImage(const unsigned char imgPtr[], unsigned short x, unsigned shor
 //   - pointer to image data
 //   - x, y location to draw image
 // ********************************************************
-void LCD_DrawBMP(const unsigned char* imgPtr, unsigned short x, unsigned short y);
+void LCD_DrawBMP(int16_t x, int16_t y, const uint16_t *image, int16_t w, int16_t h);
 
 // This table contains the hex values that represent pixels
 // for a font that is 5 pixels wide and 8 pixels high
