@@ -1,6 +1,4 @@
-int32_t vel;										// Velocity of bird (positive is upward, negative is downward)
-const unsigned char bird[];			// Image of flappy bird
-const unsigned char stage[];		// Image of stage
+#include <stdint.h>
 
 // Progress the stage 
 void advance_stage(void);

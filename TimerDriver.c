@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include "../inc/tm4c123gh6pm.h"
 #include "MAX5353.h"
+#include "Play.h"
+#include "SSD2119.h"
 
 #define C_2 11945   // 65.406 Hz
 #define DF_1 11274   // 69.296 Hz
@@ -78,9 +80,9 @@ typedef struct{
 	int len;
 } note;
 
-extern note song0[100], song1[100];
-extern uint32_t wave0, wave1, count0, count1, note0, note1, instrument;
-extern char on_button, song_going;	
+note song0[100], song1[100];
+uint32_t wave0, wave1, count0, count1, note0, note1, instrument;
+char on_button, song_going;	
 
 // Initialize Timer0 to trigger every second
 void Timer0A_Init(uint32_t time){
@@ -150,7 +152,7 @@ void Timer1A_Init(uint32_t time){
   // **** timer0A initialization ****
                                    // configure for periodic mode
   TIMER1_TAMR_R = TIMER_TAMR_TAMR_PERIOD;
-  TIMER1_TAILR_R = time;         // start value for 1 Hz interrupts
+  TIMER1_TAILR_R = 80000000;         // start value for 1 Hz interrupts
   TIMER1_IMR_R |= TIMER_IMR_TATOIM;// enable timeout (rollover) interrupt
   TIMER1_ICR_R = TIMER_ICR_TATOCINT;// clear timer1A timeout flag
   TIMER1_CTL_R |= TIMER_CTL_TAEN;  // enable timer1A 32-b, periodic, interrupts
@@ -160,40 +162,24 @@ void Timer1A_Init(uint32_t time){
   NVIC_EN0_R = 1<<21;              // enable interrupt 21 in NVIC
 }
 
+int touched = 0;
+
 // ISR for Timer0
 void Timer1A_Handler(){
 	TIMER1_ICR_R = TIMER_ICR_TATOCINT;  // acknowledge timer0A timeout
-	if (wave1 == 64) {
-		wave1 = 0;
-		if (count0 > song0[note0].len - 20) {
-			if (count1 > song1[note1].len - 20) {
-				DAC_Out(-1, -1);
-			}
-			else {
-				DAC_Out(-1, wave1);
-			}
+	if (Touch_ReadZ1() > 800) {
+		if (touched == 0) {
+			touched = 1;
+			jump();
 		}
 		else {
-			if (count1 > song1[note1].len - 20) {
-				DAC_Out(wave0, -1);
-			}
-			else {
-				DAC_Out(wave0, wave1);
-			}
-		}
-		if (count1 == song0[note0].len) {
-			count1 = 0;
-			note1++;
-			if(note1 == 100){
-				song_going = 0;
-				disable_music();
-				return;
-			}
-			TIMER1_TAILR_R = song1[note1].freq;
+			fall();
 		}
 	}
-	wave1++;
-	count1++;
+	else {
+		touched = 0;
+		fall();
+	}
 }
 
 void disable_music(){

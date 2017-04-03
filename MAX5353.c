@@ -33,7 +33,7 @@
 #define trumpet 1
 #define bassoon 2
 
-extern uint32_t instrument;
+uint32_t instrument1;
 const uint16_t guitar_wave[64] = {
 	4096, 4096, 4104, 4004, 3740, 3332, 2920, 2588, 2476, 2664, 3128, 3856, 4688, 5348, 5844, 6144, 
 	6232, 6012, 5584, 4940, 4160, 3456, 3020, 3032, 3508, 4348, 5432, 6452, 7156, 7384, 7088, 6500, 
@@ -84,7 +84,7 @@ void DAC_Init(){
 // outputs: none
 void DAC_Out(int16_t note0, int16_t note1){   
   while((SSI0_SR_R&0x00000002)==0){};// SSI Transmit FIFO Not Full
-	switch(instrument) {
+	switch(instrument1) {
 		case guitar:
 			if (note0 == -1) { // case where note0 is not currently assigned to anything
 				if (note1 == -1) { // case where there is a pause between notes
