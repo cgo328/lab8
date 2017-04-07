@@ -75,6 +75,8 @@
 void DisableInterrupts(void); // Disable interrupts
 void EnableInterrupts(void);  // Enable interrupts
 
+// Music to be implemented later
+/*
 typedef struct{
 	int freq;
 	int len;
@@ -140,8 +142,10 @@ void Timer0A_Handler(){
 	wave0++;
 	count0++;
 }
+*/
 
-// Initialize Timer0
+// Screen refreshing
+// Initialize Timer1
 void Timer1A_Init(uint32_t time){
 	volatile uint32_t delay;
   // **** general initialization ****
@@ -164,21 +168,21 @@ void Timer1A_Init(uint32_t time){
 
 int touched = 0;
 
-// ISR for Timer0
+// ISR for Timer1
 void Timer1A_Handler(){
 	TIMER1_ICR_R = TIMER_ICR_TATOCINT;  // acknowledge timer0A timeout
-	if (Touch_ReadZ1() > 800) {
-		if (touched == 0) {
-			touched = 1;
-			jump();
+	if (Touch_ReadZ1() > 800) {		// If touched
+		if (touched == 0) {		// If not previously touched
+			touched = 1;		// Acknowledge touch
+			jump();			// Have bird jump
 		}
 		else {
-			fall();
+			fall();			// Have bird fall
 		}
 	}
-	else {
-		touched = 0;
-		fall();
+	else {					// If not touched
+		touched = 0;			// Ready for next touch
+		fall();				// Have bird fall
 	}
 }
 
