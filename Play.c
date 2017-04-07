@@ -4,11 +4,12 @@
 #include "../inc/tm4c123gh6pm.h"
 #include "SSD2119.h"
 
-const int16_t gravity = 1;
-const int16_t jump_vel = -20;
-const int16_t x_pos = 20;
-const int16_t len = 20;
-const int16_t height = 15;
+const int16_t gravity = 1;		// How much velocity changes when the bird falls
+const int16_t jump_vel = -20;		// Upward velocity of bird when it jumps
+const int16_t x_pos = 20;		// X position of left edge of bird (stays constant)
+const int16_t len = 20;			// Length of bird 
+const int16_t height = 15;		// Height of bird
+
 const unsigned short play_bird[] = {
  0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
  0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
@@ -31,16 +32,15 @@ const unsigned short play_bird[] = {
 
 };
 
-int16_t vel;												// Velocity of bird (positive is upward, negative is downward)
-int16_t y_pos;
-int16_t progress;
+int16_t vel;				// Velocity of bird (negative is upward, positive is downward)
+int16_t y_pos;				// Y position of top of bird (0 is top of screen)
 
 // Progress the stage 
 void advance_stage(void);
 
 // Make flappy bird fall due to gravity
 void fall(void) {
-	vel += gravity;
+	vel += gravity;			// 
 	y_pos += vel; 
 	LCD_DrawBMP(x_pos, y_pos, play_bird, 19, 15);
 }
@@ -52,7 +52,7 @@ void jump(void) {
 	LCD_DrawBMP(x_pos, y_pos, play_bird, 19, 15);
 }
 
-// Check to see if flappy bird collided with obstacle
+// Check to see if flappy bird collided with obstacle (not implemented yet)
 uint16_t collision(void) {
 	for (int i = 0; i < len; i++) {
 	}
