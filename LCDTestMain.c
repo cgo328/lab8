@@ -6,6 +6,7 @@
 #include "LCDTests.h"
 #include "TimerDriver.h"
 
+// The bit map representing the background of the game
 const unsigned short Background[] = {
  0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619,
  0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619, 0x5619,
@@ -4812,7 +4813,7 @@ const unsigned short Background[] = {
 };
 
 
-
+// The bit map representing the bird
 const unsigned short bird[] = {
  0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
  0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
@@ -4851,11 +4852,10 @@ int main(void){unsigned long i=0;
 
     // Initialize touchscreen GPIO
     Touch_Init();
-		//LCD_DrawBMP(Background, 0, 0);
-    LCD_DrawBMP(0, 0, Background, 320, 240);
-		LCD_DrawBMP(10, 10, bird, 19, 15);
-		//LCD_DrawRect(0, 0, 50, 60, 0x0504);
-	Timer1A_Init();
+
+    LCD_DrawBMP(0, 0, Background, 320, 240);	// Draw the background
+	       
+	Timer1A_Init();				// Initialize timer for screen refresh
     for(;;) {
         
         // TO PLAY WITH THESE, EMPTY THE SYSTICK OF TIMED
