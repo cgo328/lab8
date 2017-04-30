@@ -156,7 +156,7 @@ void Timer1A_Init(uint32_t time){
   // **** timer0A initialization ****
                                    // configure for periodic mode
   TIMER1_TAMR_R = TIMER_TAMR_TAMR_PERIOD;
-  TIMER1_TAILR_R = 80000000;         // start value for 1 Hz interrupts
+  TIMER1_TAILR_R = 5000000;         // start value for 10 Hz interrupts
   TIMER1_IMR_R |= TIMER_IMR_TATOIM;// enable timeout (rollover) interrupt
   TIMER1_ICR_R = TIMER_ICR_TATOCINT;// clear timer1A timeout flag
   TIMER1_CTL_R |= TIMER_CTL_TAEN;  // enable timer1A 32-b, periodic, interrupts
@@ -170,7 +170,8 @@ int touched = 0;
 
 // ISR for Timer1
 void Timer1A_Handler(){
-	TIMER1_ICR_R = TIMER_ICR_TATOCINT;  // acknowledge timer0A timeout
+	TIMER1_ICR_R = TIMER_ICR_TATOCINT;  // acknowledge timer1A timeout
+	advanceStage();
 	if (Touch_ReadZ1() > 800) {		// If touched
 		if (touched == 0) {		// If not previously touched
 			touched = 1;		// Acknowledge touch
@@ -184,6 +185,7 @@ void Timer1A_Handler(){
 		touched = 0;			// Ready for next touch
 		fall();				// Have bird fall
 	}
+	collision();
 }
 
 void disable_music(){
